@@ -1,30 +1,16 @@
 #pragma once
 
-enum class NeuronType
-{
-	INPUT,
-	HIDDEN,
-	OUTPUT
-};
-
 class Neuron
 {
 private:
-	double _bias = 0.0f;
 	double _weight = 0.0f;
 	double _value = 0.0f;
 
-	NeuronType _type;
-
 public:
 
-	Neuron(double value, NeuronType type, double bias = Randf(), double weight = Randf());
+	Neuron(double value, double weight);
 
 	void Activate();
-
-	void SetBias(double bias);
-
-	double GetBias();
 
 	void SetWeight(double weight);
 
@@ -34,11 +20,7 @@ public:
 
 	double GetValue();
 
-	NeuronType GetType();
-
-	static double Randf();
-
-	double Sigmoid(double value);
+	void Sigmoid();
 
 	double TransferFunctionDerivative(double output);
 };
