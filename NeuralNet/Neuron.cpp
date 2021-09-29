@@ -2,22 +2,22 @@
 #include <vector>
 #include <math.h>
 
-double randf()
+double Neuron::Randf()
 {
 	return rand() / double(RAND_MAX);
 }
 
-double sigmoid(double value)
+double Neuron::Sigmoid(double value)
 {
 	return value / (1 + abs(value));
 }
 
-double transferFunctionDerivative(double output)
+double Neuron::TransferFunctionDerivative(double output)
 {
 	return output * (1.0 - output);
 }
 
-Neuron::Neuron(double bias = randf(), double weight = randf(), double value, NeuronType type)
+Neuron::Neuron(double value, NeuronType type, double bias, double weight)
 {
 	_bias = bias;
 	_weight = weight;
@@ -27,15 +27,15 @@ Neuron::Neuron(double bias = randf(), double weight = randf(), double value, Neu
 
 void Neuron::Activate()
 {
-	sigmoid(_value);
+	Sigmoid(_value);
 }
 
-void Neuron::setBias(double bias)
+void Neuron::SetBias(double bias)
 {
 	_bias = bias;
 }
 
-double Neuron::getBias()
+double Neuron::GetBias()
 {
 	return _bias;
 }
@@ -45,17 +45,22 @@ void Neuron::SetWeight(double weight)
 	_weight = weight;
 }
 
-double Neuron::getWeight()
+double Neuron::GetWeight()
 {
 	return _weight;
 }
 
-void Neuron::setValue(double value)
+void Neuron::SetValue(double value)
 {
 	_value = value;
 }
 
-double Neuron::getValue()
+double Neuron::GetValue()
 {
 	return _value;
+}
+
+NeuronType Neuron::GetType()
+{
+	return _type;
 }

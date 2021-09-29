@@ -17,19 +17,28 @@ private:
 	NeuronType _type;
 
 public:
-	Neuron(double bias = randf(), double weight = randf(), double value, NeuronType type);
+
+	Neuron(double value, NeuronType type, double bias = Randf(), double weight = Randf());
 
 	void Activate();
 
-	void setBias(double bias);
+	void SetBias(double bias);
 
-	double getBias();
+	double GetBias();
 
 	void SetWeight(double weight);
 
-	double getWeight();
+	double GetWeight();
 
-	void setValue(double value);
+	void SetValue(double value);
 
-	double getValue();
+	double GetValue();
+
+	NeuronType GetType();
+
+	static double Randf();
+
+	double Sigmoid(double value);
+
+	double TransferFunctionDerivative(double output);
 };
