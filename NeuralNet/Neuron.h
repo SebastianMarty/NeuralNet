@@ -1,20 +1,25 @@
 #pragma once
+#include <vector>
 
 class Neuron
 {
 private:
-	double _weight = 0.0f;
 	double _value = 0.0f;
+	std::vector<double> _weights;
 
 public:
 
-	Neuron(double value, double weight);
+	Neuron(double value);
 
 	void Activate();
 
-	void SetWeight(double weight);
+	void AddWeight(double weight);
 
-	double GetWeight();
+	void SetWeights(std::vector<double> weights);
+
+	std::vector<double> GetAllWeights();
+
+	double GetWeightAt(int index);
 
 	void SetValue(double value);
 

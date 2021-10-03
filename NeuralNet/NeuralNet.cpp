@@ -23,7 +23,7 @@ int main()
 
 	for (double input : inputs)
 	{
-		inputNeurons.push_back(new Neuron(input, Randf()));
+		inputNeurons.push_back(new Neuron(input));
 	}
 
 	biases.push_back(Randf());
@@ -40,11 +40,12 @@ int main()
 
 			for (Neuron* prevNeuron : neurons[x])
 			{
-				value += prevNeuron->GetValue() * prevNeuron->GetWeight();
+				prevNeuron->AddWeight(Randf());
+				value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(y);
 			}
 
 			value += biases[x];
-			Neuron* neuron = new Neuron(value, Randf());
+			Neuron* neuron = new Neuron(value);
 			neuron->Activate();
 			hiddenNeurons.push_back(neuron);
 		}
@@ -58,13 +59,14 @@ int main()
 	{
 		double value = 0.0f;
 
-		for (Neuron* prevNeuron : neurons[x])
+		for (Neuron* prevNeuron : neurons.back())
 		{
-			value += prevNeuron->GetValue() * prevNeuron->GetWeight();
+			prevNeuron->AddWeight(Randf());
+			value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(x);
 		}
 
 		value += biases.back();
-		Neuron* neuron = new Neuron(value, Randf());
+		Neuron* neuron = new Neuron(value);
 		neuron->Activate();
 		outputNeurons.push_back(neuron);
 	}
@@ -88,8 +90,12 @@ int main()
 			cout << "Neuron Value: ";
 			cout << neuron->GetValue() << endl;
 
-			cout << "Neuron Weight: ";
-			cout << neuron->GetWeight() << endl;
+			cout << "Neuron Weights:" << endl;
+
+			for (double weight : neuron->GetAllWeights())
+			{
+				cout << weight << endl;
+			}
 
 			cout << "---------------------------" << endl;
 		}
