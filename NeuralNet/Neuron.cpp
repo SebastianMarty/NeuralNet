@@ -6,7 +6,7 @@ void Neuron::Sigmoid()
 	_value = _value / (1 + abs(_value));
 }
 
-double Neuron::TransferFunctionDerivative(double output)
+double Neuron::SigmoidTransferFunctionDerivative(double output)
 {
 	return output * (1.0 - output);
 }
@@ -39,6 +39,24 @@ void Neuron::SetWeights(std::vector<double> weights)
 void Neuron::SetValue(double value)
 {
 	_value = value;
+}
+
+double Neuron::GetError()
+{
+	return _error;
+}
+
+void Neuron::SetError(double error)
+{
+	_error = error;
+}
+
+void Neuron::AdjustWeights(double learningRate)
+{
+	for (int x = 0; x < _weights.size(); x++)
+	{
+		_weights[x] = _weights[x] + learningRate * _error * _input;
+	}
 }
 
 double Neuron::GetWeightAt(int index)

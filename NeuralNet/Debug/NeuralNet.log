@@ -1,2 +1,5 @@
 ﻿  NeuralNet.cpp
-  NeuralNet.vcxproj -> D:\Smartlearn\5_daten\4. Lehrjahr\1. Semester\ABU\VA\NeuralNet\Debug\NeuralNet.exe
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(87,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(97,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(145,20): warning C4018: '<': signed/unsigned mismatch
+  NeuralNet.vcxproj -> C:\Users\Sebastian Marty\source\repos\NeuralNet\Debug\NeuralNet.exe
