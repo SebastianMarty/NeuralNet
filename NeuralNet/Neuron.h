@@ -7,6 +7,9 @@ private:
 	double _input = 0.0f;
 	double _value = 0.0f;
 	double _error = 0.0f;
+	double _gradient = 0.0f;
+	double alpha = 0.25f; // [0.0..n] multiplier of last weight change (momentum)
+
 	std::vector<double> _weights;
 
 public:
@@ -31,9 +34,17 @@ public:
 
 	void SetError(double error);
 
-	void Sigmoid();
+	double GetGradient();
 
-	void AdjustWeights(double learningRate);
+	void TransferFunction();
 
-	double SigmoidTransferFunctionDerivative(double output);
+	void UpdateWeights(std::vector<Neuron*> prevLayer, int neuronIndex, double learningRate);
+
+	double TransferFunctionDerivative(double output);
+
+	void CalcOutputGradients(double expValue);
+
+	void CalcHiddenGradients(std::vector<Neuron*> nextLayer);
+
+	double SumDow(std::vector<Neuron*> nextLayer);
 };

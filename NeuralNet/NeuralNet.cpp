@@ -7,8 +7,12 @@ using namespace std;
 int hiddenLayersCount = 2;
 int outputNeuronsCount = 2;
 int hiddenNeuronsCount = 10;
+int trainingRounds = 10000;
 
-double learningRate = 0.1;
+double learningRate = 0.01;
+double avgError = 0.0f;
+double recentAvgError = 0.0f;
+double recentAvgSmoothingFactor = 100.0f;
 
 vector<double> inputs{ 1.0f, 0.3f, 0.4f, 1.0f, 0.5f };
 vector<double> biases;
@@ -22,9 +26,20 @@ double Randf()
 	return rand() / double(RAND_MAX);
 }
 
+int GetNeuronIndex(Neuron* neuron, int layerIndex)
+{
+	auto it = find(neurons[layerIndex].begin(), neurons[layerIndex].end(), neuron);
+	return it - neurons[layerIndex].begin();
+}
+
+int GetLayerIndex(vector<Neuron*> layer)
+{
+	auto it = find(neurons.begin(), neurons.end(), layer);
+	return it - neurons.begin();
+}
+
 void InitializeNet()
 {
-
 	for (double input : inputs)
 	{
 		inputNeurons.push_back(new Neuron(input));
@@ -80,37 +95,73 @@ void InitializeNet()
 	neurons.push_back(outputNeurons);
 }
 
-void BackPropagate()
+void FeedForward()
 {
-	for (int x = neurons.size() - 1; x >= 0; x--)
+	for (int x = 1; x < neurons.size(); x++)
 	{
 		for (int y = 0; y < neurons[x].size(); y++)
 		{
-			if (x == neurons.size() - 1)
-			{
-				neurons[x][y]->SetError(expOutputs[y] * neurons[x][y]->SigmoidTransferFunctionDerivative(neurons[x][y]->GetValue()));
-			}
-			else
-			{
-				double error = 0.0f;
+			double value = 0.0f;
 
-				for (int z = 0; z < neurons[x + 1].size(); z++)
-				{
-					error += neurons[x][y]->GetWeightAt(z) * neurons[x + 1][z]->GetError();
-					neurons[x][y]->SetError(error * neurons[x][y]->SigmoidTransferFunctionDerivative(neurons[x][y]->GetValue()));
-				}
+			for (Neuron* prevNeuron : neurons[x - 1])
+			{
+				value += prevNeuron->GetWeightAt(y) * prevNeuron->GetValue();
 			}
+
+			value += biases[x];
+
+			neurons[x][y]->SetValue(value);
+			neurons[x][y]->Activate();
 		}
 	}
 }
 
-void UpdateWeights()
+void BackPropagate()
 {
-	for (int x = 0; x < neurons.size(); x++)
+	vector<Neuron*> outputLayer = neurons.back();
+	avgError = 0.0f;
+
+	for (int x = 0; x < outputLayer.size(); x++)
 	{
-		for (Neuron* neuron : neurons[x])
+		double delta = expOutputs[x] - outputLayer[x]->GetValue();
+		avgError += delta * delta;
+	}
+
+	avgError /= outputLayer.size(); // get average error squared
+	avgError = sqrt(avgError); // root mean squared error (rmse)
+
+	// recent average measurement
+	recentAvgError = (recentAvgError * recentAvgSmoothingFactor + avgError) / (recentAvgSmoothingFactor + 1.0f);
+
+	// calculate output layer gradients
+	for (int x = 0; x < outputLayer.size(); x++)
+	{
+		outputLayer[x]->CalcOutputGradients(expOutputs[x]);
+	}
+
+	// calculate gradients on hidden layers
+	for (int x = neurons.size() - 2; x >= 0; x--)
+	{
+		vector<Neuron*> hiddenLayer = neurons[x];
+		vector<Neuron*> nextLayer = neurons[x + 1];
+
+		for (int y = 0; y < hiddenLayer.size(); y++)
 		{
-			neuron->AdjustWeights(learningRate);
+			hiddenLayer[y]->CalcHiddenGradients(nextLayer);
+		}
+	}
+
+	// for all layers from outputs to first hidden layer, update connection weights
+	for (int x = neurons.size() - 1; x > 0; x--)
+	{
+		vector<Neuron*> layer = neurons[x];
+		vector<Neuron*> prevLayer = neurons[x - 1];
+
+		for (int y = 0; y < layer.size() - 1; y++)
+		{
+			int layerIndex = GetLayerIndex(layer);
+			int neuronIndex = GetNeuronIndex(layer[y], layerIndex);
+			layer[y]->UpdateWeights(prevLayer, neuronIndex, learningRate);
 		}
 	}
 }
@@ -139,7 +190,9 @@ void ShowAll()
 			}
 
 			cout << "---------------------------" << endl;
-			cout << "Neuron Error: " << neuron->GetError() << endl;
+			cout << "Gradient: " << neuron->GetGradient() << endl;
+			cout << "Average Error: " << avgError << endl;
+			cout << "Recent Average Error: " << recentAvgError << endl;
 			cout << "+++++++++++++++++++++++++++" << endl;
 		}
 		cout << endl;
@@ -153,7 +206,13 @@ int main()
 
 	BackPropagate();
 
-	UpdateWeights();
+	// Training the network
+	for (int x = 0; x < trainingRounds; x++)
+	{
+		FeedForward();
+
+		BackPropagate();
+	}
 
 	ShowAll();
 }

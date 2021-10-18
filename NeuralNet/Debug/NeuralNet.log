@@ -1,5 +1,8 @@
 ﻿  NeuralNet.cpp
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(87,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(97,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(145,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(100,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(102,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(124,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(137,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(148,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(160,21): warning C4018: '<': signed/unsigned mismatch
   NeuralNet.vcxproj -> C:\Users\Sebastian Marty\source\repos\NeuralNet\Debug\NeuralNet.exe
