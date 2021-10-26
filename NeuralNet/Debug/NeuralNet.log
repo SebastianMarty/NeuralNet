@@ -1,8 +1,4 @@
-﻿  NeuralNet.cpp
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(100,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(102,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(124,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(137,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(148,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Sebastian Marty\source\repos\NeuralNet\NeuralNet\NeuralNet.cpp(160,21): warning C4018: '<': signed/unsigned mismatch
-  NeuralNet.vcxproj -> C:\Users\Sebastian Marty\source\repos\NeuralNet\Debug\NeuralNet.exe
+﻿NeuralNet.obj : error LNK2019: unresolved external symbol "public: __thiscall cv::Mat::~Mat(void)" (??1Mat@cv@@QAE@XZ) referenced in function "void __cdecl GetInputsFromImage(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >)" (?GetInputsFromImage@@YAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
+NeuralNet.obj : error LNK2019: unresolved external symbol "class cv::Mat __cdecl cv::imread(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,int)" (?imread@cv@@YA?AVMat@1@ABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@Z) referenced in function "void __cdecl GetInputsFromImage(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >)" (?GetInputsFromImage@@YAXV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)
+C:\opencv\build\x64\vc14\lib\opencv_world454d.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+D:\Smartlearn\5_daten\4. Lehrjahr\1. Semester\ABU\VA\NeuralNet\Debug\NeuralNet.exe : fatal error LNK1120: 2 unresolved externals

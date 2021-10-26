@@ -1,20 +1,24 @@
 #include "Neuron.h"
 #include <vector>
 #include <iostream>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 
 int hiddenLayersCount = 2;
 int outputNeuronsCount = 2;
 int hiddenNeuronsCount = 10;
-int trainingRounds = 10000;
+int trainingRounds = 10;
 
 double learningRate = 0.01;
 double avgError = 0.0f;
 double recentAvgError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
 
-vector<double> inputs{ 1.0f, 0.3f, 0.4f, 1.0f, 0.5f };
+vector<double> inputs;
 vector<double> biases;
 vector<double> expOutputs = { 1.0f, 0.0f };
 vector<vector<Neuron*>> neurons;
@@ -36,6 +40,28 @@ int GetLayerIndex(vector<Neuron*> layer)
 {
 	auto it = find(neurons.begin(), neurons.end(), layer);
 	return it - neurons.begin();
+}
+
+void GetInputsFromImage(string path)
+{
+	cv::Mat image = cv::imread(path);
+
+	if (!image.empty())
+	{
+		inputs = {};
+
+		// Iterate over all pixels of the image
+		for (int r = 0; r < image.rows; r++) {
+			// Obtain a pointer to the beginning of row r
+			cv::Vec3b* ptr = image.ptr<cv::Vec3b>(r);
+
+			for (int c = 0; c < image.cols; c++) {
+				// Get average (grayscale) value of pixel and divide by 255 to normalize the pixel value
+				int i = (ptr[c][0] + ptr[c][1] + ptr[c][2]) / 3.0f;
+				inputs.push_back((double)i / (double)255);
+			}
+		}
+	}
 }
 
 void InitializeNet()
@@ -168,51 +194,89 @@ void BackPropagate()
 
 void ShowAll()
 {
-	for (vector<Neuron*> layer : neurons)
+	for (int x = 1; x < neurons.size(); x++)
 	{
-		auto it = find(neurons.begin(), neurons.end(), layer);
+		auto it = find(neurons.begin(), neurons.end(), neurons[x]);
 		int index = it - neurons.begin();
 
-		cout << "Layer: " << index + 1 << endl;
-		cout << "Layer Bias: ";
-		cout << biases[index] << endl;
-		cout << "***************************" << endl;
+		std::cout << "Layer: " << index + 1 << std::endl;
+		std::cout << "Layer Bias: ";
+		std::cout << biases[index] << std::endl;
+		std::cout << "***************************" << std::endl;
 
-		for (Neuron* neuron : layer)
+		for (int y = 0; y < neurons[x].size(); y++)
 		{
-			cout << "Neuron Value: " << neuron->GetValue() << endl;
+			std::cout << "Neuron Value: " << neurons[x][y]->GetValue() << std::endl;
 
-			cout << "Neuron Weights:" << endl;
+			std::cout << "Neuron Weights:" << std::endl;
 
-			for (double weight : neuron->GetAllWeights())
+			for (double weight : neurons[x][y]->GetAllWeights())
 			{
-				cout << weight << endl;
+				std::cout << weight << std::endl;
 			}
 
-			cout << "---------------------------" << endl;
-			cout << "Gradient: " << neuron->GetGradient() << endl;
-			cout << "Average Error: " << avgError << endl;
-			cout << "Recent Average Error: " << recentAvgError << endl;
-			cout << "+++++++++++++++++++++++++++" << endl;
+			std::cout << "---------------------------" << std::endl;
+			std::cout << "Gradient: " << neurons[x][y]->GetGradient() << std::endl;
+			std::cout << "Average Error: " << avgError << std::endl;
+			std::cout << "Recent Average Error: " << recentAvgError << std::endl;
+			std::cout << "+++++++++++++++++++++++++++" << std::endl;
 		}
-		cout << endl;
-		cout << endl;
+		std::cout << std::endl;
+		std::cout << std::endl;
 	}
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-	InitializeNet();
-
-	BackPropagate();
-
-	// Training the network
-	for (int x = 0; x < trainingRounds; x++)
+	if (argv[1])
 	{
-		FeedForward();
+		string text;
+		ifstream stream(argv[1]);
+		int runCount = 0;
 
-		BackPropagate();
+		while (getline(stream, text)) {
+			if (runCount == 0)
+			{
+				runCount++;
+				continue;
+			}
+
+			string path;
+			int expResult = 0;
+
+			for (int x = 0; x < text.length(); x++)
+			{
+				if (text[x] == ',')
+				{
+					expResult = text[x + 2];
+					break;
+				}
+				else
+				{
+					if (text[x] != '\0')
+					{
+						path += text[x];
+					}
+				}
+			}
+
+			GetInputsFromImage(argv[2] + path);
+
+			if (neurons.size() == 0)
+			{
+				InitializeNet();
+				BackPropagate();
+			}
+
+			// Training the network
+			for (int x = 0; x < trainingRounds; x++)
+			{
+				FeedForward();
+
+				BackPropagate();
+			}
+		}
+
+		ShowAll();
 	}
-
-	ShowAll();
 }
