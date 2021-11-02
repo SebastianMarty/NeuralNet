@@ -3,7 +3,7 @@
 
 void Neuron::TransferFunction()
 {
-	_value = tanh(_value);
+	_value = 1.0 / (1.0 + exp(-_value));
 }
 
 double Neuron::TransferFunctionDerivative(double output)

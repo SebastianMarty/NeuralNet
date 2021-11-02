@@ -5,22 +5,22 @@
 #include <iostream>
 #include <fstream>
 #include <opencv2/opencv.hpp>
+#include <bitset>
 
 using namespace std;
 
-int hiddenLayersCount = 2;
-int outputNeuronsCount = 2;
-int hiddenNeuronsCount = 10;
-int trainingRounds = 10;
+int hiddenLayersCount = 10;
+int hiddenNeuronsCount = 20;
+int trainingRounds = 100;
 
-double learningRate = 0.01;
+double learningRate = 1;
 double avgError = 0.0f;
 double recentAvgError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
 
 vector<double> inputs;
 vector<double> biases;
-vector<double> expOutputs = { 1.0f, 0.0f };
+vector<double> expOutputs;
 vector<vector<Neuron*>> neurons;
 vector<Neuron*> inputNeurons;
 vector<Neuron*> outputNeurons;
@@ -48,17 +48,22 @@ void GetInputsFromImage(string path)
 
 	if (!image.empty())
 	{
+		//Resize image to fixed input size
+		cv::Mat imgResized;
+		double scaleFactor = 50 / (double)image.size().width;
+		cv::resize(image, imgResized, cv::Size(image.size().width * scaleFactor, image.size().height * scaleFactor), cv::InterpolationFlags::INTER_LINEAR);
+
 		inputs = {};
 
 		// Iterate over all pixels of the image
-		for (int r = 0; r < image.rows; r++) {
+		for (int r = 0; r < imgResized.rows; r++) {
 			// Obtain a pointer to the beginning of row r
-			cv::Vec3b* ptr = image.ptr<cv::Vec3b>(r);
+			cv::Vec3b* ptr = imgResized.ptr<cv::Vec3b>(r);
 
-			for (int c = 0; c < image.cols; c++) {
+			for (int c = 0; c < imgResized.cols; c++) {
 				// Get average (grayscale) value of pixel and divide by 255 to normalize the pixel value
 				int i = (ptr[c][0] + ptr[c][1] + ptr[c][2]) / 3.0f;
-				inputs.push_back((double)i / (double)255);
+				inputs.push_back(((double)i / (double)255) * -1.0f + 1.0f);
 			}
 		}
 	}
@@ -100,7 +105,7 @@ void InitializeNet()
 		neurons.push_back(hiddenNeurons);
 	}
 
-	for (int x = 0; x < outputNeuronsCount; x++)
+	for (int x = 0; x < expOutputs.size(); x++)
 	{
 		double value = 0.0f;
 
@@ -192,38 +197,44 @@ void BackPropagate()
 	}
 }
 
-void ShowAll()
+void WriteAll(char sample)
 {
+	std::string path("D:\\Smartlearn\\5_daten\\4. Lehrjahr\\1. Semester\\ABU\\VA\\NeuralNet\\Results\\Sample_");
+	path.push_back(sample);
+	path.append(".txt");
+
+	fstream file(path, ios_base::app | ios_base::out | ios_base::in);
+
 	for (int x = 1; x < neurons.size(); x++)
 	{
 		auto it = find(neurons.begin(), neurons.end(), neurons[x]);
 		int index = it - neurons.begin();
 
-		std::cout << "Layer: " << index + 1 << std::endl;
-		std::cout << "Layer Bias: ";
-		std::cout << biases[index] << std::endl;
-		std::cout << "***************************" << std::endl;
+		file << "Layer: " << index + 1 << std::endl;
+		file << "Layer Bias: ";
+		file << biases[index] << std::endl;
+		file << "***************************" << std::endl;
 
 		for (int y = 0; y < neurons[x].size(); y++)
 		{
-			std::cout << "Neuron Value: " << neurons[x][y]->GetValue() << std::endl;
+			file << "Neuron Value: " << neurons[x][y]->GetValue() << std::endl;
 
-			std::cout << "Neuron Weights:" << std::endl;
+			file << "Neuron Weights:" << std::endl;
 
 			for (double weight : neurons[x][y]->GetAllWeights())
 			{
-				std::cout << weight << std::endl;
+				file << weight << std::endl;
 			}
 
-			std::cout << "---------------------------" << std::endl;
-			std::cout << "Gradient: " << neurons[x][y]->GetGradient() << std::endl;
-			std::cout << "Average Error: " << avgError << std::endl;
-			std::cout << "Recent Average Error: " << recentAvgError << std::endl;
-			std::cout << "+++++++++++++++++++++++++++" << std::endl;
+			file << "+++++++++++++++++++++++++++" << std::endl;
+			file << std::endl;
 		}
-		std::cout << std::endl;
-		std::cout << std::endl;
+
+		file << std::endl;
+		file << std::endl;
 	}
+
+	file.close();
 }
 
 int main(int argc, char* argv[])
@@ -233,8 +244,10 @@ int main(int argc, char* argv[])
 		string text;
 		ifstream stream(argv[1]);
 		int runCount = 0;
+		char lastExpResult = '0';
 
-		while (getline(stream, text)) {
+		while (getline(stream, text))
+		{
 			if (runCount == 0)
 			{
 				runCount++;
@@ -242,7 +255,7 @@ int main(int argc, char* argv[])
 			}
 
 			string path;
-			int expResult = 0;
+			char expResult = '0';
 
 			for (int x = 0; x < text.length(); x++)
 			{
@@ -260,6 +273,24 @@ int main(int argc, char* argv[])
 				}
 			}
 
+			if (lastExpResult != expResult)
+			{
+				WriteAll(lastExpResult);
+				lastExpResult = expResult;
+			}
+
+			vector<double> expValues;
+
+			for (int c : bitset<8>(expResult).to_string())
+			{
+				expValues.push_back(c - 48);
+			}
+
+			expOutputs = expValues;
+			expValues = {};
+
+			cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
+
 			GetInputsFromImage(argv[2] + path);
 
 			if (neurons.size() == 0)
@@ -272,11 +303,16 @@ int main(int argc, char* argv[])
 			for (int x = 0; x < trainingRounds; x++)
 			{
 				FeedForward();
-
 				BackPropagate();
+
+				/*cout << "Training round: " << x + 1 << endl;
+
+				for (Neuron* neuron : neurons.back())
+				{
+					cout << neuron->GetValue() << endl;
+				}*/
+
 			}
 		}
-
-		ShowAll();
 	}
 }
