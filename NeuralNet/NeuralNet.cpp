@@ -9,18 +9,18 @@
 
 using namespace std;
 
-int hiddenLayersCount = 10;
-int hiddenNeuronsCount = 20;
-int trainingRounds = 100;
+int hiddenLayersCount = 50;
+int hiddenNeuronsCount = 10;
+int trainingRounds = 100000;
 
-double learningRate = 1;
+double learningRate = 0.1;
 double avgError = 0.0f;
 double recentAvgError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
 
-vector<double> inputs;
+vector<double> inputs = { 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,0.0f };
 vector<double> biases;
-vector<double> expOutputs;
+vector<double> expOutputs = { 1.0f, 0.0f };
 vector<vector<Neuron*>> neurons;
 vector<Neuron*> inputNeurons;
 vector<Neuron*> outputNeurons;
@@ -244,75 +244,97 @@ int main(int argc, char* argv[])
 		string text;
 		ifstream stream(argv[1]);
 		int runCount = 0;
-		char lastExpResult = '0';
+		char lastExpResult = ' ';
 
-		while (getline(stream, text))
+		//while (getline(stream, text))
+		//{
+		//	if (runCount == 0)
+		//	{
+		//		runCount++;
+		//		continue;
+		//	}
+
+		int prevPercentage = -1;
+
+		// Training the network
+		for (int x = 0; x < trainingRounds; x++)
 		{
-			if (runCount == 0)
+			int percentage = (double)x / (double)trainingRounds * 100;
+
+			if (percentage != prevPercentage)
 			{
-				runCount++;
-				continue;
+				cout << percentage << "%" << endl;
+				prevPercentage = percentage;
 			}
+			//		string path;
+			//		char expResult = '0';
 
-			string path;
-			char expResult = '0';
+			//		for (int x = 0; x < text.length(); x++)
+			//		{
+			//			if (text[x] == ',')
+			//			{
+			//				expResult = text[x + 2];
+			//				break;
+			//			}
+			//			else
+			//			{
+			//				if (text[x] != '\0')
+			//				{
+			//					path += text[x];
+			//				}
+			//			}
+			//		}
 
-			for (int x = 0; x < text.length(); x++)
-			{
-				if (text[x] == ',')
-				{
-					expResult = text[x + 2];
-					break;
-				}
-				else
-				{
-					if (text[x] != '\0')
-					{
-						path += text[x];
-					}
-				}
-			}
+			//		//if (lastExpResult != expResult)
+			//		//{
+			//		//	WriteAll(lastExpResult);
+			//		//	lastExpResult = expResult;
+			//		//}
 
-			if (lastExpResult != expResult)
-			{
-				WriteAll(lastExpResult);
-				lastExpResult = expResult;
-			}
+			//		vector<double> expValues;
 
-			vector<double> expValues;
+			//		for (int c : bitset<8>(expResult).to_string())
+			//		{
+			//			expValues.push_back(c - 48);
+			//		}
 
-			for (int c : bitset<8>(expResult).to_string())
-			{
-				expValues.push_back(c - 48);
-			}
+			//		expOutputs = expValues;
+			//		expValues = {};
 
-			expOutputs = expValues;
-			expValues = {};
+			//		if (lastExpResult != expResult)
+			//		{
+			//			cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
+			//			lastExpResult = expResult;
+			//		}
 
-			cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
-
-			GetInputsFromImage(argv[2] + path);
+			//		GetInputsFromImage(argv[2] + path);
 
 			if (neurons.size() == 0)
 			{
 				InitializeNet();
-				BackPropagate();
 			}
-
-			// Training the network
-			for (int x = 0; x < trainingRounds; x++)
+			else
 			{
 				FeedForward();
-				BackPropagate();
-
-				/*cout << "Training round: " << x + 1 << endl;
-
-				for (Neuron* neuron : neurons.back())
-				{
-					cout << neuron->GetValue() << endl;
-				}*/
-
 			}
+
+			BackPropagate();
+
+			std::string logPath("D:\\Smartlearn\\5_daten\\4. Lehrjahr\\1. Semester\\ABU\\VA\\NeuralNet\\Results\\TrainResults.txt");
+
+			fstream file(logPath, ios_base::app | ios_base::out | ios_base::in);
+			file.clear();
+			file << "Training Round: " << x + 1 << endl;
+
+			for (Neuron* neuron : neurons.back())
+			{
+				file << "Output Value: " << neuron->GetValue() << endl;
+				file << "Expected Value: " << expOutputs[GetNeuronIndex(neuron, GetLayerIndex(neurons.back()))] << endl;
+				file << endl;
+			}
+
+			file << endl;
 		}
+		//}
 	}
 }

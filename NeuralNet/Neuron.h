@@ -8,7 +8,7 @@ private:
 	double _value = 0.0f;
 	double _error = 0.0f;
 	double _gradient = 0.0f;
-	double alpha = 0.25f; // [0.0..n] multiplier of last weight change (momentum)
+	double alpha = 1.0f; // [0.0..n] multiplier of last weight change (momentum)
 
 	std::vector<double> _weights;
 
