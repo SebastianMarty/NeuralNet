@@ -9,11 +9,11 @@
 
 using namespace std;
 
-int hiddenLayersCount = 50;
-int hiddenNeuronsCount = 10;
-int trainingRounds = 100000;
+int hiddenLayersCount = 10;
+int hiddenNeuronsCount = 5;
+int trainingRounds = 5000;
 
-double learningRate = 0.1;
+double learningRate = 1;
 double avgError = 0.0f;
 double recentAvgError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
@@ -100,7 +100,7 @@ void InitializeNet()
 			hiddenNeurons.push_back(neuron);
 		}
 
-		biases.push_back(Randf());
+		biases.push_back(1.0f);
 
 		neurons.push_back(hiddenNeurons);
 	}
@@ -158,7 +158,7 @@ void BackPropagate()
 		avgError += delta * delta;
 	}
 
-	avgError /= outputLayer.size(); // get average error squared
+	avgError /= outputLayer.size() - 1; // get average error squared
 	avgError = sqrt(avgError); // root mean squared error (rmse)
 
 	// recent average measurement
