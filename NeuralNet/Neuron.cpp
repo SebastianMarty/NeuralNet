@@ -40,14 +40,11 @@ double Neuron::SumDow(std::vector<Neuron*> nextLayer)
 Neuron::Neuron(double value)
 {
 	_value = value;
-	_input = value;
 }
 
 void Neuron::Activate()
 {
 	TransferFunction();
-
-	_input = _value;
 }
 
 void Neuron::AddWeight(double weight)
@@ -74,7 +71,6 @@ double Neuron::GetValue()
 void Neuron::SetValue(double value)
 {
 	_value = value;
-	_input = value;
 }
 
 double Neuron::GetGradient()

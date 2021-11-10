@@ -4,7 +4,6 @@
 class Neuron
 {
 private:
-	double _input = 0.0f;
 	double _value = 0.0f;
 	double _gradient = 0.0f;
 	double alpha = 0.5f; // [0.0..n] multiplier of last weight change (momentum)
