@@ -9,11 +9,11 @@
 
 using namespace std;
 
-int hiddenLayersCount = 30;
+int hiddenLayersCount = 10;
 int hiddenNeuronsCount = 5;
-int trainingRounds = 100;
+int trainingRounds = 5000;
 
-double learningRate = 1;
+double learningRate = 0.1f;
 double avgError = 0.0f;
 double recentAvgError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
@@ -25,9 +25,10 @@ vector<vector<Neuron*>> neurons;
 vector<Neuron*> inputNeurons;
 vector<Neuron*> outputNeurons;
 
-double Randf()
+double Randf(double min, double max)
 {
-	return rand() / double(RAND_MAX);
+	double d = (double)rand() / double(RAND_MAX);
+	return min + d * (max - min);
 }
 
 int GetNeuronIndex(Neuron* neuron, int layerIndex)
@@ -50,8 +51,10 @@ void GetInputsFromImage(string path)
 	{
 		//Resize image to fixed input size
 		cv::Mat imgResized;
-		double scaleFactor = 50 / (double)image.size().width;
-		cv::resize(image, imgResized, cv::Size(image.size().width * scaleFactor, image.size().height * scaleFactor), cv::InterpolationFlags::INTER_LINEAR);
+		cv::resize(image, imgResized, cv::Size(50, 38), cv::InterpolationFlags::INTER_LINEAR);
+
+		//cv::imshow("Test", imgResized);
+		//cv::waitKey();
 
 		inputs = {};
 
@@ -76,7 +79,7 @@ void InitializeNet()
 		inputNeurons.push_back(new Neuron(input));
 	}
 
-	biases.push_back(Randf());
+	biases.push_back(Randf(-1.0f, 1.0f));
 
 	neurons.push_back(inputNeurons);
 
@@ -90,7 +93,7 @@ void InitializeNet()
 
 			for (Neuron* prevNeuron : neurons[x])
 			{
-				prevNeuron->AddWeight(Randf());
+				prevNeuron->AddWeight(Randf(-1.0f, 1.0f));
 				value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(y);
 			}
 
@@ -100,7 +103,7 @@ void InitializeNet()
 			hiddenNeurons.push_back(neuron);
 		}
 
-		biases.push_back(1.0f);
+		biases.push_back(Randf(-1.0f, 1.0f));
 
 		neurons.push_back(hiddenNeurons);
 	}
@@ -111,7 +114,7 @@ void InitializeNet()
 
 		for (Neuron* prevNeuron : neurons.back())
 		{
-			prevNeuron->AddWeight(Randf());
+			prevNeuron->AddWeight(Randf(-1.0f, 1.0f));
 			value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(x);
 		}
 
@@ -121,7 +124,7 @@ void InitializeNet()
 		outputNeurons.push_back(neuron);
 	}
 
-	biases.push_back(Randf());
+	biases.push_back(Randf(-1.0f, 1.0f));
 
 	neurons.push_back(outputNeurons);
 }
@@ -201,54 +204,56 @@ int main(int argc, char* argv[])
 {
 	if (argv[1])
 	{
-		string text;
-		ifstream stream(argv[1]);
-		int runCount = 0;
-
-		while (getline(stream, text))
+		// Training the network
+		for (int x = 0; x < trainingRounds; x++)
 		{
-			if (runCount == 0)
-			{
-				runCount++;
-				continue;
-			}
+			cout << "Training rount: " << x + 1 << endl;
 
-			string path;
-			char expResult = '0';
+			string text;
+			ifstream stream(argv[1]);
+			int runCount = 0;
 
-			for (int x = 0; x < text.length(); x++)
+			while (getline(stream, text))
 			{
-				if (text[x] == ',')
+				if (runCount == 0)
 				{
-					expResult = text[x + 2];
-					break;
+					runCount++;
+					continue;
 				}
-				else
+
+				string path;
+				char expResult = '0';
+
+				for (int x = 0; x < text.length(); x++)
 				{
-					if (text[x] != '\0')
+					if (text[x] == ',')
 					{
-						path += text[x];
+						expResult = text[x + 2];
+						break;
+					}
+					else
+					{
+						if (text[x] != '\0')
+						{
+							path += text[x];
+						}
 					}
 				}
-			}
 
-			vector<double> expValues;
+				vector<double> expValues;
 
-			for (int c : bitset<8>(expResult).to_string())
-			{
-				expValues.push_back(c - 48);
-			}
+				for (int c : bitset<8>(expResult).to_string())
+				{
+					expValues.push_back(c - 48);
+				}
 
-			expOutputs = expValues;
-			expValues = {};
+				expOutputs = expValues;
+				expValues = {};
 
-			cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
+				cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
 
-			GetInputsFromImage(argv[2] + path);
+				GetInputsFromImage(argv[2] + path);
 
-			// Training the network
-			for (int x = 0; x < trainingRounds; x++)
-			{
 				if (neurons.size() == 0)
 				{
 					InitializeNet();
@@ -267,17 +272,20 @@ int main(int argc, char* argv[])
 
 				for (Neuron* neuron : neurons.back())
 				{
-					file << "Output Value: " << (int)(neuron->GetValue() + 0.5f) << endl;
+					file << "Output Value: " << neuron->GetValue() << endl;
 					file << "Expected Value: " << expOutputs[GetNeuronIndex(neuron, GetLayerIndex(neurons.back()))] << endl;
 					file << endl;
 				}
 
 				file << endl;
 			}
+
+			stream.close();
 		}
 
 		string testText;
 		ifstream testStream(argv[1]);
+		int runCount = 0;
 
 		while (getline(testStream, testText))
 		{
@@ -306,16 +314,6 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			vector<double> expValues;
-
-			for (int c : bitset<8>(expResult).to_string())
-			{
-				expValues.push_back(c - 48);
-			}
-
-			expOutputs = expValues;
-			expValues = {};
-
 			GetInputsFromImage(argv[2] + path);
 
 			FeedForward();
@@ -335,5 +333,7 @@ int main(int argc, char* argv[])
 				file << endl;
 			}
 		}
+
+		testStream.close();
 	}
 }
