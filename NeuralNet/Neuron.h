@@ -6,7 +6,7 @@ class Neuron
 private:
 	double _value = 0.0f;
 	double _gradient = 0.0f;
-	double alpha = 0.5f; // [0.0..n] multiplier of last weight change (momentum)
+	double _alpha = 0.5f; // [0.0..n] multiplier of last weight change (momentum)
 
 	std::vector<double> _weights;
 	std::vector<double> _deltaWeights;
@@ -35,7 +35,9 @@ public:
 
 	void UpdateWeights(std::vector<Neuron*> prevLayer, int neuronIndex, double learningRate);
 
-	double TransferFunctionDerivative(double output);
+	void ClearDeltaWeights();
+
+	double TransferFunctionDerivative(double value);
 
 	void CalcOutputGradients(double expValue);
 

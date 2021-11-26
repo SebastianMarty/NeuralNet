@@ -9,26 +9,25 @@
 
 using namespace std;
 
-int hiddenLayersCount = 10;
-int hiddenNeuronsCount = 5;
-int trainingRounds = 5000;
+int hiddenLayersCount = 1;
+int hiddenNeuronsCount = 512;
+int trainingRounds = 2000;
 
-double learningRate = 0.1f;
-double avgError = 0.0f;
-double recentAvgError = 0.0f;
+double learningRate = 0.2f;
+double error = 0.0f;
+double averageError = 0.0f;
 double recentAvgSmoothingFactor = 100.0f;
 
 vector<double> inputs;
-vector<double> biases;
+//vector<double> biases;
 vector<double> expOutputs;
 vector<vector<Neuron*>> neurons;
 vector<Neuron*> inputNeurons;
 vector<Neuron*> outputNeurons;
 
-double Randf(double min, double max)
+double Randf()
 {
-	double d = (double)rand() / double(RAND_MAX);
-	return min + d * (max - min);
+	return (double)rand() / double(RAND_MAX);
 }
 
 int GetNeuronIndex(Neuron* neuron, int layerIndex)
@@ -51,7 +50,7 @@ void GetInputsFromImage(string path)
 	{
 		//Resize image to fixed input size
 		cv::Mat imgResized;
-		cv::resize(image, imgResized, cv::Size(50, 38), cv::InterpolationFlags::INTER_LINEAR);
+		cv::resize(image, imgResized, cv::Size(32, 32), cv::InterpolationFlags::INTER_LINEAR);
 
 		//cv::imshow("Test", imgResized);
 		//cv::waitKey();
@@ -79,7 +78,7 @@ void InitializeNet()
 		inputNeurons.push_back(new Neuron(input));
 	}
 
-	biases.push_back(Randf(-1.0f, 1.0f));
+	//biases.push_back(Randf());
 
 	neurons.push_back(inputNeurons);
 
@@ -93,17 +92,17 @@ void InitializeNet()
 
 			for (Neuron* prevNeuron : neurons[x])
 			{
-				prevNeuron->AddWeight(Randf(-1.0f, 1.0f));
+				prevNeuron->AddWeight(Randf());
 				value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(y);
 			}
 
-			value += biases[x];
+			//value += biases[x];
 			Neuron* neuron = new Neuron(value);
 			neuron->Activate();
 			hiddenNeurons.push_back(neuron);
 		}
 
-		biases.push_back(Randf(-1.0f, 1.0f));
+		//biases.push_back(Randf());
 
 		neurons.push_back(hiddenNeurons);
 	}
@@ -114,17 +113,17 @@ void InitializeNet()
 
 		for (Neuron* prevNeuron : neurons.back())
 		{
-			prevNeuron->AddWeight(Randf(-1.0f, 1.0f));
+			prevNeuron->AddWeight(Randf());
 			value += prevNeuron->GetValue() * prevNeuron->GetWeightAt(x);
 		}
 
-		value += biases.back();
+		//value += biases.back();
 		Neuron* neuron = new Neuron(value);
 		neuron->Activate();
 		outputNeurons.push_back(neuron);
 	}
 
-	biases.push_back(Randf(-1.0f, 1.0f));
+	//biases.push_back(Randf());
 
 	neurons.push_back(outputNeurons);
 }
@@ -142,7 +141,7 @@ void FeedForward()
 				value += prevNeuron->GetWeightAt(y) * prevNeuron->GetValue();
 			}
 
-			value += biases[x];
+			//value += biases[x];
 
 			neurons[x][y]->SetValue(value);
 			neurons[x][y]->Activate();
@@ -153,19 +152,19 @@ void FeedForward()
 void BackPropagate()
 {
 	vector<Neuron*> outputLayer = neurons.back();
-	avgError = 0.0f;
+	error = 0.0f;
 
 	for (int x = 0; x < outputLayer.size(); x++)
 	{
-		double delta = expOutputs[x] - (int)(outputLayer[x]->GetValue() + 0.5f);
-		avgError += delta * delta;
+		double delta = expOutputs[x] - (outputLayer[x]->GetValue());
+		error += delta * delta;
 	}
 
-	avgError /= outputLayer.size() - 1; // get average error squared
-	avgError = sqrt(avgError); // root mean squared error (rmse)
+	error /= outputLayer.size() - 1; // get average error squared
+	error = sqrt(error); // root mean squared error (rmse)
 
 	// recent average measurement
-	recentAvgError = (recentAvgError * recentAvgSmoothingFactor + avgError) / (recentAvgSmoothingFactor + 1.0f);
+	averageError = (averageError * recentAvgSmoothingFactor + error) / (recentAvgSmoothingFactor + 1.0f);
 
 	// calculate output layer gradients
 	for (int x = 0; x < outputLayer.size(); x++)
@@ -207,6 +206,7 @@ int main(int argc, char* argv[])
 		// Training the network
 		for (int x = 0; x < trainingRounds; x++)
 		{
+
 			cout << "Training rount: " << x + 1 << endl;
 
 			string text;
@@ -240,15 +240,49 @@ int main(int argc, char* argv[])
 					}
 				}
 
-				vector<double> expValues;
+				/*vector<double> expValues;
 
 				for (int c : bitset<8>(expResult).to_string())
 				{
 					expValues.push_back(c - 48);
-				}
+				}*/
 
-				expOutputs = expValues;
-				expValues = {};
+				//expOutputs = expValues;
+				//expValues = {};
+
+				switch (expResult)
+				{
+				case '0':
+					expOutputs = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '1':
+					expOutputs = { 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '2':
+					expOutputs = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '3':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '4':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '5':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '6':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f };
+					break;
+				case '7':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
+					break;
+				case '8':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f };
+					break;
+				case '9':
+					expOutputs = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+					break;
+				}
 
 				cout << bitset<8>(expResult).to_string() << "|" << expResult << endl;
 
@@ -279,6 +313,12 @@ int main(int argc, char* argv[])
 
 				file << endl;
 			}
+
+			cout << endl;
+			cout << endl;
+			cout << averageError << endl;
+			cout << endl;
+			cout << endl;
 
 			stream.close();
 		}

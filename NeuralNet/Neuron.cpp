@@ -3,12 +3,13 @@
 
 void Neuron::TransferFunction()
 {
-	_value = tanh(_value);
+	_value = 1 / (1 + exp(-_value));
 }
 
-double Neuron::TransferFunctionDerivative(double output)
+double Neuron::TransferFunctionDerivative(double value)
 {
-	return 1.0f - output * output;
+	double i = 1 / (1 + exp(-value));
+	return i * (1 - i);
 }
 
 void Neuron::CalcOutputGradients(double expValue)
@@ -87,10 +88,18 @@ void Neuron::UpdateWeights(std::vector<Neuron*> prevLayer, int neuronIndex, doub
 		Neuron* prevNeuron = prevLayer[x];
 
 		double oldDeltaWeight = prevNeuron->_deltaWeights[neuronIndex];
-		double newDeltaWeight = learningRate * prevNeuron->GetValue() * _gradient + alpha * oldDeltaWeight;
+		double newDeltaWeight = learningRate * prevNeuron->GetValue() * _gradient + _alpha * oldDeltaWeight;
 
 		prevNeuron->_deltaWeights[neuronIndex] = newDeltaWeight;
 		prevNeuron->_weights[neuronIndex] += newDeltaWeight;
+	}
+}
+
+void Neuron::ClearDeltaWeights()
+{
+	for (int x = 0; x < _deltaWeights.size(); x++)
+	{
+		_deltaWeights[x] = 0.0f;
 	}
 }
 
